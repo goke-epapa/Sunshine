@@ -226,6 +226,11 @@ public class ForecastFragment extends Fragment {
             return highLowStr;
         }
 
+        private double convertToFahrenheit(double temp){
+            double newTemp = (temp * 9 ) / 5 + 32;
+            return newTemp;
+        }
+
         /**
          * Take the String representing the complete forecast in JSON Format and
          * pull out the data we need to construct the Strings needed for the wireframes.
@@ -273,6 +278,15 @@ public class ForecastFragment extends Fragment {
                 JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
                 double high = temperatureObject.getDouble(OWM_MAX);
                 double low = temperatureObject.getDouble(OWM_MIN);
+
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                String tempUnits = preferences.getString(getString(R.string.pref_temperature_units_key),
+                        getString(R.string.pref_temperature_units_default));
+
+                if(tempUnits.equalsIgnoreCase("imperial")){
+                    high = convertToFahrenheit(high);
+                    low = convertToFahrenheit(low);
+                }
 
                 highAndLow = formatHighLows(high, low);
                 resultStrs[i] = day + " - " + description + " - " + highAndLow;

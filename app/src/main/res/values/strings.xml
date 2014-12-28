@@ -10,5 +10,13 @@
     <string name="pref_location_label">Location</string>
     <string name="pref_location_key">location</string>
     <string name="pref_location_default_value">94043</string>
+    <string name="pref_temperature_units">Temperature Units</string>
+    <string name="pref_temperature_units_key">temperature_units</string>
+    <string name="pref_temperature_units_default">Metric</string>
+
+    <array name="temperature_units">
+        <item>Metric</item>
+        <item>Imperial</item>
+    </array>
 
 </resources>
