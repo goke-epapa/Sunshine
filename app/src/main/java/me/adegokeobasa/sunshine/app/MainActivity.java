@@ -1,7 +1,9 @@
 package me.adegokeobasa.sunshine.app;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,6 +41,15 @@ public class MainActivity extends ActionBarActivity {
         if (id == R.id.action_settings) {
             Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(settingsIntent);
+        } else if (id == R.id.action_view_location) {
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW);
+            String location = PreferenceManager.getDefaultSharedPreferences(this).
+                    getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default_value));
+            Uri uri = Uri.parse("geo:0,0?q=" + location);
+            mapIntent.setData(uri);
+            if(mapIntent.resolveActivity(getPackageManager()) != null){
+                startActivity(mapIntent);
+            }
         }
 
         return super.onOptionsItemSelected(item);
