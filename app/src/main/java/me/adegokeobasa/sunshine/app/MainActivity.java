@@ -5,11 +5,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
 public class MainActivity extends ActionBarActivity {
+
+    public static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,17 +45,25 @@ public class MainActivity extends ActionBarActivity {
             Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(settingsIntent);
         } else if (id == R.id.action_view_location) {
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW);
-            String location = PreferenceManager.getDefaultSharedPreferences(this).
-                    getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default_value));
-            Uri uri = Uri.parse("geo:0,0?q=" + location);
-            mapIntent.setData(uri);
-            if(mapIntent.resolveActivity(getPackageManager()) != null){
-                startActivity(mapIntent);
-            }
+            openPreferredLocation();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openPreferredLocation() {
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW);
+        String location = PreferenceManager.getDefaultSharedPreferences(this).
+                getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default_value));
+        Uri uri = Uri.parse("geo:0,0").buildUpon()
+                .appendQueryParameter("q", location).build();
+
+        mapIntent.setData(uri);
+        if(mapIntent.resolveActivity(getPackageManager()) != null){
+            startActivity(mapIntent);
+        } else {
+            Log.d(TAG, "Couldn't find package");
+        }
     }
 
 

@@ -3,7 +3,9 @@ package me.adegokeobasa.sunshine.app;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.ShareActionProvider;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,6 +16,8 @@ import android.widget.TextView;
 
 public class DetailActivity extends ActionBarActivity {
 
+    ShareActionProvider mShareActionProvider;
+    public static final String SHARE_HASH_TAG = "#SunshineApp";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +35,14 @@ public class DetailActivity extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_detail, menu);
-        return true;
+
+        MenuItem shareItem = menu.findItem(R.id.action_share);
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+        mShareActionProvider.setShareIntent(new Intent(Intent.ACTION_SEND)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+                .setType("text/plain")
+                .putExtra(Intent.EXTRA_TEXT, getIntent().getStringExtra(Intent.EXTRA_TEXT) + SHARE_HASH_TAG));
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
