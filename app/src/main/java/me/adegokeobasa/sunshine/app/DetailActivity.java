@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -12,20 +11,21 @@ import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.ShareActionProvider;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import me.adegokeobasa.sunshine.app.data.WeatherContract;
+import me.adegokeobasa.sunshine.app.data.WeatherContract.WeatherEntry;
 
 public class DetailActivity extends ActionBarActivity {
 
     private static final int FORECAST_LOADER = 0;
-    ShareActionProvider mShareActionProvider;
-    public static final String SHARE_HASH_TAG = "#SunshineApp";
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
             // the content provider joins the location & weather tables in the background
@@ -63,19 +63,6 @@ public class DetailActivity extends ActionBarActivity {
     }
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_detail, menu);
-
-        MenuItem shareItem = menu.findItem(R.id.action_share);
-        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
-        mShareActionProvider.setShareIntent(new Intent(Intent.ACTION_SEND)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-                .setType("text/plain")
-                .putExtra(Intent.EXTRA_TEXT, getIntent().getStringExtra(Intent.EXTRA_TEXT) + SHARE_HASH_TAG));
-        return super.onCreateOptionsMenu(menu);
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -91,12 +78,15 @@ public class DetailActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
     /**
      * A placeholder fragment containing a simple view.
      */
     public static class PlaceholderFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+        private static final String LOG_TAG = PlaceholderFragment.class.getSimpleName();
         TextView detailsView;
+        ShareActionProvider mShareActionProvider;
+        public static final String SHARE_HASH_TAG = "#SunshineApp";
+        String mForecast;
         public PlaceholderFragment() {
         }
 
@@ -104,7 +94,6 @@ public class DetailActivity extends ActionBarActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
-            detailsView = (TextView) rootView.findViewById(R.id.details);
             return rootView;
         }
 
@@ -132,8 +121,60 @@ public class DetailActivity extends ActionBarActivity {
 
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-            if(data != null && data.moveToFirst())
-                detailsView.setText(data.getString(COL_WEATHER_MAX_TEMP));
+            if(!data.moveToFirst()){
+                return;
+            }
+            String dateString = Utility.formatDate(
+                data.getString(data.getColumnIndex(WeatherEntry.COLUMN_DATETEXT)));
+            ((TextView) getView().findViewById(R.id.detail_date_textview))
+                    .setText(dateString);
+
+            String weatherDescription =
+                    data.getString(data.getColumnIndex(WeatherEntry.COLUMN_SHORT_DESC));
+            ((TextView) getView().findViewById(R.id.detail_forecast_textview))
+                    .setText(weatherDescription);
+
+            boolean isMetric = Utility.isMetric(getActivity());
+
+            String high = Utility.formatTemperature(getActivity(),
+                    data.getDouble(data.getColumnIndex(WeatherEntry.COLUMN_MAX_TEMP)), isMetric);
+            ((TextView) getView().findViewById(R.id.detail_high_textview)).setText(high);
+
+            String low = Utility.formatTemperature(getActivity(),
+                    data.getDouble(data.getColumnIndex(WeatherEntry.COLUMN_MIN_TEMP)), isMetric);
+            ((TextView) getView().findViewById(R.id.detail_low_textview)).setText(low);
+
+            // We still need this for the share intent
+            String mForecast = String.format("%s - %s - %s/%s", dateString, weatherDescription, high, low);
+
+            Log.v(LOG_TAG, "Forecast String: " + mForecast);
+
+            // If onCreateOptionsMenu has already happened, we need to update the share intent now.
+            if (mShareActionProvider != null) {
+                mShareActionProvider.setShareIntent(createShareForecastIntent());
+            }
+        }
+
+        private Intent createShareForecastIntent() {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, mForecast + SHARE_HASH_TAG);
+            return shareIntent;
+        }
+
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            // Inflate the menu; this adds items to the action bar if it is present.
+            inflater.inflate(R.menu.menu_detail, menu);
+
+            MenuItem shareItem = menu.findItem(R.id.action_share);
+            mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+            mShareActionProvider.setShareIntent(new Intent(Intent.ACTION_SEND)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .setType("text/plain")
+                    .putExtra(Intent.EXTRA_TEXT, createShareForecastIntent()));
         }
 
         @Override
@@ -142,7 +183,7 @@ public class DetailActivity extends ActionBarActivity {
         }
 
         @Override
-        public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        public void onActivityCreated(Bundle savedInstanceState) {
             getLoaderManager().initLoader(FORECAST_LOADER, null, this);
             super.onActivityCreated(savedInstanceState);
         }
