@@ -30,15 +30,6 @@
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
-
-        <receiver
-            android:name=".ChargingReceiver"
-            android:enabled="true"
-            android:exported="true" >
-            <intent-filter>
-                    <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
-            </intent-filter>
-        </receiver>
         <provider
             android:authorities="me.adegokeobasa.sunshine.app"
             android:name=".data.WeatherProvider"/>

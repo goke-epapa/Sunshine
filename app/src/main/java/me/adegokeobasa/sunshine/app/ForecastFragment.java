@@ -34,14 +34,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private String mLocation;
 
     // For the forecast view we're showing only a small subset of the stored data.
-// Specify the columns we need.
+    // Specify the columns we need.
     private static final String[] FORECAST_COLUMNS = {
-// In this case the id needs to be fully qualified with a table name, since
-// the content provider joins the location & weather tables in the background
-// (both have an _id column)
-// On the one hand, that's annoying. On the other, you can search the weather table
-// using the location set by the user, which is only in the Location table.
-// So the convenience is worth it.
+            // In this case the id needs to be fully qualified with a table name, since
+            // the content provider joins the location & weather tables in the background
+            // (both have an _id column)
+            // On the one hand, that's annoying. On the other, you can search the weather table
+            // using the location set by the user, which is only in the Location table.
+            // So the convenience is worth it.
             WeatherEntry.TABLE_NAME + "." + WeatherEntry._ID,
             WeatherEntry.COLUMN_DATETEXT,
             WeatherEntry.COLUMN_SHORT_DESC,
@@ -51,7 +51,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     };
 
     // These indices are tied to FORECAST_COLUMNS. If FORECAST_COLUMNS changes, these
-// must change.
+    // must change.
     public static final int COL_WEATHER_ID = 0;
     public static final int COL_WEATHER_DATE = 1;
     public static final int COL_WEATHER_DESC = 2;
@@ -113,7 +113,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 switch (columnIndex) {
                     case COL_WEATHER_MAX_TEMP:
                     case COL_WEATHER_MIN_TEMP: {
-// we have to do some formatting and possibly a conversion
+                    // we have to do some formatting and possibly a conversion
                         ((TextView) view).setText(Utility.formatTemperature(
                                 cursor.getDouble(columnIndex), isMetric));
                         return true;
@@ -139,20 +139,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 SimpleCursorAdapter cursorAdapter = (SimpleCursorAdapter) adapterView.getAdapter();
                 Cursor cursor = cursorAdapter.getCursor();
 
-                if(cursor != null && cursor.moveToFirst()){
-                    String weatherString = "";
-                    boolean isMetric = Utility.isMetric(getActivity());
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(Utility.formatDate(cursor.getString(COL_WEATHER_DATE)))
-                            .append(" - ")
-                            .append(cursor.getString(COL_WEATHER_DESC))
-                            .append(" - ")
-                            .append(Utility.formatTemperature(cursor.getDouble(COL_WEATHER_MIN_TEMP), isMetric))
-                            .append("/")
-                            .append(Utility.formatTemperature(cursor.getDouble(COL_WEATHER_MAX_TEMP), isMetric));
-                    weatherString = sb.toString();
+                if (cursor != null && cursor.moveToFirst()) {
+                    String weatherDate = cursor.getString(COL_WEATHER_DATE);
                     Intent detailIntent = new Intent(getActivity(), DetailActivity.class)
-                            .putExtra(Intent.EXTRA_TEXT, weatherString);
+                            .putExtra(Intent.EXTRA_TEXT, weatherDate);
                     startActivity(detailIntent);
                 }
 
